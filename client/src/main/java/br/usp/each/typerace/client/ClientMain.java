@@ -13,8 +13,9 @@ public class ClientMain {
         this.client = client;
     }
 
-    public void init(String idCliente) {
+    public void init(String idCliente) throws InterruptedException {
         System.out.println("Iniciando cliente: " + idCliente);
+        client.connectBlocking();
         // TODO: Implementar
     }
 
@@ -33,8 +34,10 @@ public class ClientMain {
             ClientMain main = new ClientMain(client);
 
             main.init(removeMe2);
-        } catch (URISyntaxException e) {
+            client.send("Testando conexao");
+        } catch (URISyntaxException | InterruptedException e) {
             e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 }
