@@ -40,4 +40,8 @@ public class Server extends WebSocketServer {
     public void onStart() {
         // TODO: Implementar
     }
+
+    public int getConnectionsNumber() {
+        return connections.size();
+    }
 }

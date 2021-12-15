@@ -18,6 +18,7 @@ public class Client extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
+        System.out.println(message);
         // TODO: Implementar
     }
 
