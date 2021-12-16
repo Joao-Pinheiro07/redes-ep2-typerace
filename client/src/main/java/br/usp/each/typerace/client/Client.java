@@ -24,7 +24,9 @@ public class Client extends WebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        // TODO: Implementar
+        if (!reason.equals("playerAlreadyExist")) {
+            System.out.println("Saindo da sessão");
+        }
     }
 
     @Override
