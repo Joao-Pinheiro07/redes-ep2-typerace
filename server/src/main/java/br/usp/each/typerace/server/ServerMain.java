@@ -20,12 +20,11 @@ public class ServerMain {
     }
 
     public static void main(String[] args) throws InterruptedException, IOException {
-        System.out.println(WordList.getWordList());
-        // WebSocketServer server = new Server(8080, new HashMap<>());
+        WebSocketServer server = new Server(8080, new HashMap<>());
 
-        // ServerMain main = new ServerMain(server);
+        ServerMain main = new ServerMain(server);
 
-        // main.init();
+        main.init();
 
     }
 

@@ -1,16 +1,23 @@
 package br.usp.each.typerace.server;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 public class TypeRacerSession {
-    private Set<Player> players;
-    private List<String> words;
+    private List<Player> players;
+    private Set<String> words;
     private boolean gameStarted;
+    private static final int maxScore = 10;
+
+    public Set<String> getWords() {
+        return words;
+    }
 
     public TypeRacerSession() {
-        this.players = new HashSet<Player>();
+        this.players = new ArrayList<Player>();
+        this.words = WordList.getWordList();
+        this.gameStarted = false;
     }
 
     public void addPlayerToSession(String playerId) {
@@ -29,4 +36,24 @@ public class TypeRacerSession {
         this.gameStarted = gameStarted;
     }
 
+    public void loadWordListToAllPlayers() {
+        for (Player p : players) {
+            p.setWords(words);
+        }
+    }
+
+    public long changeGameSession(boolean status) {
+        setGameStarted(status);
+        return System.currentTimeMillis();
+    }
+
+    public boolean isThereAWinner() {
+        for (Player p : players) {
+            if (p.getCorrectWords() == maxScore) {
+                System.out.println(p.getId() + "ganhou!");
+                return true;
+            }
+        }
+        return false;
+    }
 }

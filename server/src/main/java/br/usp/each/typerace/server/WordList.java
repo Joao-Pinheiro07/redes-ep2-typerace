@@ -27,7 +27,7 @@ public class WordList {
         return wordList;
     }
 
-    public static Set<Integer> getRandomIndexes() {
+    private static Set<Integer> getRandomIndexes() {
         Random randNum = new Random();
         Set<Integer> set = new HashSet<Integer>();
         while (set.size() < 15) {

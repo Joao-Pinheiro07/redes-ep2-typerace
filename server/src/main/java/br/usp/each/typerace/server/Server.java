@@ -12,10 +12,12 @@ import java.util.regex.Pattern;
 public class Server extends WebSocketServer {
 
     private final Map<String, WebSocket> connections;
+    private TypeRacerSession trSession;
 
     public Server(int port, Map<String, WebSocket> connections) {
         super(new InetSocketAddress(port));
         this.connections = connections;
+        this.trSession = new TypeRacerSession();
     }
 
     @Override
@@ -31,18 +33,29 @@ public class Server extends WebSocketServer {
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        if (!reason.equals("playerAlreadyExist")) {
-            connections.remove(getPlayerId(conn.getResourceDescriptor()));
-            broadcast("\n" + getPlayerId(conn.getResourceDescriptor()) + " saiu." + "\nNumero de jogadores: "
-                    + getConnectionsNumber());
-            System.out.println("\n" + getPlayerId(conn.getResourceDescriptor()) + " saiu." + "\nNumero de jogadores: "
-                    + getConnectionsNumber());
-        }
+        if (!reason.equals("playerAlreadyExist"))
+            removePlayerFromSession(conn);
+
     }
 
     @Override
     public void onMessage(WebSocket conn, String message) {
         System.out.println(message);
+        if (!trSession.isGameStarted()) {
+            switch (message) {
+                case "sair":
+                    removePlayerFromSession(conn);
+                    break;
+                case "iniciar":
+                    startGame();
+                    break;
+
+                default:
+                    break;
+            }
+        } else if (trSession.isGameStarted()) {
+
+        }
     }
 
     @Override
@@ -78,10 +91,29 @@ public class Server extends WebSocketServer {
     private void addPlayerToSession(WebSocket conn) {
         String newPlayer = getPlayerId(conn.getResourceDescriptor());
         this.connections.put(newPlayer, conn);
+        this.trSession.addPlayerToSession(newPlayer);
+
         String newPlayerMessage = "\n" + newPlayer + " entrou." + "\nNumero de jogadores: " + getConnectionsNumber();
 
         broadcast(newPlayerMessage);
         conn.send("Você entrou, Bem vindo " + newPlayer + "!");
         System.out.println(newPlayerMessage);
+    }
+
+    private void removePlayerFromSession(WebSocket conn) {
+        String playerId = getPlayerId(conn.getResourceDescriptor());
+        connections.remove(playerId);
+        trSession.removePlayerFromSessionById(playerId);
+        broadcast("\n" + playerId + " saiu." + "\nNumero de jogadores: "
+                + getConnectionsNumber());
+        System.out.println("\n" + playerId + " saiu." + "\nNumero de jogadores: "
+                + getConnectionsNumber());
+    }
+
+    private void startGame() {
+        broadcast(
+                "inicio de jogo!\nO primeiro jogador a escrever corretamente das seguintes palavras será o ganhador.\n"
+                        + trSession.getWords());
+        trSession.changeGameSession(true);
     }
 }
