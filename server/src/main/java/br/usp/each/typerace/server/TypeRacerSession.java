@@ -7,6 +7,7 @@ import java.util.Set;
 public class TypeRacerSession {
     private Set<Player> players;
     private List<String> words;
+    private boolean gameStarted;
 
     public TypeRacerSession() {
         this.players = new HashSet<Player>();
@@ -18,6 +19,14 @@ public class TypeRacerSession {
 
     public void removePlayerFromSessionById(String playerId) {
         this.players.removeIf(p -> p.getId() == playerId);
+    }
+
+    public boolean isGameStarted() {
+        return gameStarted;
+    }
+
+    public void setGameStarted(boolean gameStarted) {
+        this.gameStarted = gameStarted;
     }
 
 }
