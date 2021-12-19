@@ -1,11 +1,14 @@
 package br.usp.each.typerace.server;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class TypeRacerSession {
-    private List<Player> players;
+    private Map<String, Player> players;
     private Set<String> words;
     private boolean gameStarted;
     private static final int maxScore = 10;
@@ -15,17 +18,18 @@ public class TypeRacerSession {
     }
 
     public TypeRacerSession() {
-        this.players = new ArrayList<Player>();
+        this.players = new HashMap<String, Player>();
         this.words = WordList.getWordList();
         this.gameStarted = false;
     }
 
     public void addPlayerToSession(String playerId) {
-        this.players.add(new Player(playerId));
+        this.players.put(playerId, new Player(playerId));
+
     }
 
     public void removePlayerFromSessionById(String playerId) {
-        this.players.removeIf(p -> p.getId() == playerId);
+        this.players.remove(playerId);
     }
 
     public boolean isGameStarted() {
@@ -37,8 +41,8 @@ public class TypeRacerSession {
     }
 
     public void loadWordListToAllPlayers() {
-        for (Player p : players) {
-            p.setWords(words);
+        for (Player p : players.values()) {
+            p.setWords(new HashSet<String>(words));
         }
     }
 
@@ -47,13 +51,31 @@ public class TypeRacerSession {
         return System.currentTimeMillis();
     }
 
+    public void verifyAnswer(String answer, String playerId) {
+        Player player = players.get(playerId);
+        player.checkWord(answer);
+    }
+
+    public boolean verifyAnswerAndCheckIfIsThereAWinner(String answer, String playerId) {
+        Player player = players.get(playerId);
+        player.checkWord(answer);
+        if (player.getCorrectWords() == maxScore)
+            return true;
+        return false;
+
+    }
+
     public boolean isThereAWinner() {
-        for (Player p : players) {
+        for (Player p : players.values()) {
             if (p.getCorrectWords() == maxScore) {
                 System.out.println(p.getId() + "ganhou!");
                 return true;
             }
         }
         return false;
+    }
+
+    public String getPlayerAvaiableWords(String playerId) {
+        return players.get(playerId).getWords().toString();
     }
 }

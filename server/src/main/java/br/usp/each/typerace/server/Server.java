@@ -54,6 +54,12 @@ public class Server extends WebSocketServer {
                     break;
             }
         } else if (trSession.isGameStarted()) {
+            String playerId = getPlayerId(conn.getResourceDescriptor());
+            trSession.verifyAnswer(message, playerId);
+            String avaiableWords = "palavras disponiveis:\n" + trSession.getPlayerAvaiableWords(playerId);
+            conn.send(avaiableWords);
+            if (trSession.isThereAWinner())
+                endGame();
 
         }
     }
@@ -114,6 +120,15 @@ public class Server extends WebSocketServer {
         broadcast(
                 "inicio de jogo!\nO primeiro jogador a escrever corretamente das seguintes palavras será o ganhador.\n"
                         + trSession.getWords());
+        System.out.println("Inicio de jogo");
+        trSession.loadWordListToAllPlayers();
         trSession.changeGameSession(true);
+    }
+
+    private void endGame() {
+        System.out.println("Fim de jogo");
+        broadcast("Jogo finalizado!");
+        trSession.changeGameSession(false);
+
     }
 }

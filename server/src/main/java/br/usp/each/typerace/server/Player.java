@@ -34,10 +34,10 @@ public class Player {
         this.wrongWords += 1;
     }
 
-    public void checkWord(String anwser) {
-        if (words.contains(anwser)) {
+    public void checkWord(String answer) {
+        if (words.contains(answer)) {
             incrementCorrectWords();
-            words.remove(anwser);
+            words.remove(answer);
         } else {
             incrementWrongWords();
         }

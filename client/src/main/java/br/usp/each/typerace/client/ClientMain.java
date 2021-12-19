@@ -30,7 +30,7 @@ public class ClientMain {
          * servidor
          * ele deve se conectar e o seu ID?
          */
-        String removeMe = "ws://localhost:8080";
+        String removeMe = "ws://localhost:8081";
 
         WebSocketClient client;
 
@@ -52,6 +52,11 @@ public class ClientMain {
 
                 if (client.isOpen())
                     break;
+            }
+
+            while (true) {
+                String message = bf.readLine();
+                client.send(message);
             }
 
         } catch (URISyntaxException | InterruptedException | IOException e) {
