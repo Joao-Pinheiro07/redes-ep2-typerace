@@ -22,7 +22,7 @@ class ClientMainTest {
 
     @Test
     void deveSeConectarAUmServidor() throws InterruptedException {
-        subject.init("testId");
+        subject.init();
 
         verify(clientMock).connect();
     }

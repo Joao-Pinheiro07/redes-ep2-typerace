@@ -6,6 +6,7 @@ import org.java_websocket.server.WebSocketServer;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,21 +34,25 @@ public class Server extends WebSocketServer {
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        if (!reason.equals("playerAlreadyExist"))
-            removePlayerFromSession(conn);
+        if (!reason.equals("playerAlreadyExist")) {
+            String playerId = getPlayerId(conn.getResourceDescriptor());
+            broadcast("\n" + playerId + " saiu." + " Numero de jogadores na sessão: "
+                    + getConnectionsNumber());
+            System.out.println("\n" + playerId + " saiu." + " Numero de jogadores na sessão: "
+                    + getConnectionsNumber());
+        }
 
     }
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        System.out.println(message);
         if (!trSession.isGameStarted()) {
             switch (message) {
                 case "sair":
                     removePlayerFromSession(conn);
                     break;
                 case "iniciar":
-                    startGame();
+                    startGame(getPlayerId(conn.getResourceDescriptor()));
                     break;
 
                 default:
@@ -55,9 +60,11 @@ public class Server extends WebSocketServer {
             }
         } else if (trSession.isGameStarted()) {
             String playerId = getPlayerId(conn.getResourceDescriptor());
-            trSession.verifyAnswer(message, playerId);
-            String avaiableWords = "palavras disponiveis:\n" + trSession.getPlayerAvaiableWords(playerId);
-            conn.send(avaiableWords);
+            boolean isCorrectAnswer = trSession.verifyAnswer(message, playerId);
+            String correctAnswer = "Voce acertou!\n";
+            if (!isCorrectAnswer)
+                correctAnswer = "Voce errou.\n";
+            conn.send(correctAnswer + trSession.getPlayerAvaiableWords(playerId));
             if (trSession.isThereAWinner())
                 endGame();
 
@@ -99,10 +106,12 @@ public class Server extends WebSocketServer {
         this.connections.put(newPlayer, conn);
         this.trSession.addPlayerToSession(newPlayer);
 
-        String newPlayerMessage = "\n" + newPlayer + " entrou." + "\nNumero de jogadores: " + getConnectionsNumber();
+        String newPlayerMessage = "" + newPlayer + " entrou." + " Numero de jogadores na sessão: "
+                + getConnectionsNumber();
 
         broadcast(newPlayerMessage);
-        conn.send("Você entrou, Bem vindo " + newPlayer + "!");
+        conn.send("Bem vindo ao Typerace, " + newPlayer
+                + "!\n -Caso deseje sair da sessão antes do inicio de uma partida, digite \"sair\".\n -Caso dejese iniciar a patida para to a sessão, digite \"iniciar\".");
         System.out.println(newPlayerMessage);
     }
 
@@ -110,25 +119,34 @@ public class Server extends WebSocketServer {
         String playerId = getPlayerId(conn.getResourceDescriptor());
         connections.remove(playerId);
         trSession.removePlayerFromSessionById(playerId);
-        broadcast("\n" + playerId + " saiu." + "\nNumero de jogadores: "
-                + getConnectionsNumber());
-        System.out.println("\n" + playerId + " saiu." + "\nNumero de jogadores: "
-                + getConnectionsNumber());
+        conn.close();
     }
 
-    private void startGame() {
+    private void startGame(String player) {
+        startCoutdown(player, 5);
         broadcast(
-                "inicio de jogo!\nO primeiro jogador a escrever corretamente das seguintes palavras será o ganhador.\n"
-                        + trSession.getWords());
-        System.out.println("Inicio de jogo");
+                "Inicio de jogo!\nO primeiro jogador que escrever corretamente as seguintes palavras será o ganhador.Boa sorte!\n"
+                        + trSession.getAvaiableWords());
+        System.out.println("Inicio de jogo!");
         trSession.loadWordListToAllPlayers();
-        trSession.changeGameSession(true);
+        trSession.startGameSession();
     }
 
     private void endGame() {
-        System.out.println("Fim de jogo");
-        broadcast("Jogo finalizado!");
-        trSession.changeGameSession(false);
+        trSession.endGameSession();
+        System.out.println("Fim de jogo!\n\n" + trSession.getScoreBoard());
+        broadcast("Fim de jogo!\n\n" + trSession.getScoreBoard());
+    }
 
+    private void startCoutdown(String player, int seconds) {
+        broadcast(player + " enviou o sinal de inicio! A partida começará em:");
+        for (int i = seconds; i > 1; i--) {
+            broadcast(i + "...\n");
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

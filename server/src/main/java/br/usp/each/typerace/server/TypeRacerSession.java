@@ -1,6 +1,7 @@
 package br.usp.each.typerace.server;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,7 +12,9 @@ public class TypeRacerSession {
     private Map<String, Player> players;
     private Set<String> words;
     private boolean gameStarted;
-    private static final int maxScore = 10;
+    private static final int maxScore = 3;
+    private static long startGameTime;
+    private static long endGameTime;
 
     public Set<String> getWords() {
         return words;
@@ -19,7 +22,7 @@ public class TypeRacerSession {
 
     public TypeRacerSession() {
         this.players = new HashMap<String, Player>();
-        this.words = WordList.getWordList();
+        this.words = WordList.getWordList(maxScore);
         this.gameStarted = false;
     }
 
@@ -46,29 +49,13 @@ public class TypeRacerSession {
         }
     }
 
-    public long changeGameSession(boolean status) {
-        setGameStarted(status);
-        return System.currentTimeMillis();
-    }
-
-    public void verifyAnswer(String answer, String playerId) {
-        Player player = players.get(playerId);
-        player.checkWord(answer);
-    }
-
-    public boolean verifyAnswerAndCheckIfIsThereAWinner(String answer, String playerId) {
-        Player player = players.get(playerId);
-        player.checkWord(answer);
-        if (player.getCorrectWords() == maxScore)
-            return true;
-        return false;
-
+    public boolean verifyAnswer(String answer, String playerId) {
+        return players.get(playerId).checkWord(answer);
     }
 
     public boolean isThereAWinner() {
         for (Player p : players.values()) {
             if (p.getCorrectWords() == maxScore) {
-                System.out.println(p.getId() + "ganhou!");
                 return true;
             }
         }
@@ -76,6 +63,61 @@ public class TypeRacerSession {
     }
 
     public String getPlayerAvaiableWords(String playerId) {
-        return players.get(playerId).getWords().toString();
+        return players.get(playerId).getAvaiableWords();
+    }
+
+    public void startGameSession() {
+        setGameStarted(true);
+        startGameTime = System.currentTimeMillis();
+    }
+
+    public void endGameSession() {
+        setGameStarted(false);
+        endGameTime = System.currentTimeMillis();
+    }
+
+    public long getGameTime() {
+        return endGameTime - startGameTime;
+    }
+
+    public String getScoreBoard() {
+        List<Player> sortedPlayers = new ArrayList<Player>(players.values());
+        Collections.sort(sortedPlayers, new PlayerComparator());
+
+        StringBuilder scoreBoard = new StringBuilder();
+        scoreBoard.append(String.format(("+-------+---------------+-------+-----+%n")));
+        scoreBoard.append(String.format(("|             PLACAR FINAL            |%n")));
+        scoreBoard.append(String.format(("+-------+---------------+-------+-----+%n")));
+        scoreBoard.append(String.format(("|Posicao|     Nome      |Acertos|Erros|%n")));
+        scoreBoard.append(String.format(("+-------+---------------+-------+-----+%n")));
+
+        int i = 1;
+        for (Player p : sortedPlayers) {
+            scoreBoard.append(p.toString(i++));
+        }
+        scoreBoard.append(String.format(("+-------+---------------+-------+-----+%n")));
+
+        long now = getGameTime();
+        long minutos = now / 60000;
+        long segundos = (now % 60000) / 1000;
+        scoreBoard
+                .append(String.format("|%-37s|%n", "Tempo total: " + minutos + " minutos e " + segundos + " segundos"));
+        scoreBoard.append(String.format(("+-------------------------------------+%n")));
+        return scoreBoard.toString();
+    }
+
+    public String getAvaiableWords() {
+        StringBuilder avaiableWords = new StringBuilder();
+
+        avaiableWords.append(String.format(("+-------------------+%n")));
+        avaiableWords.append(String.format(("|Palavras da Partida|%n")));
+        avaiableWords.append(String.format(("+-------------------+%n")));
+        String leftAlignFormat = "|%-19s|%n";
+
+        for (String w : words) {
+            avaiableWords.append(String.format(leftAlignFormat, w));
+        }
+        avaiableWords.append(String.format(("+-------------------+%n")));
+        return avaiableWords.toString();
     }
 }

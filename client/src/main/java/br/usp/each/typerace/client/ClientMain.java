@@ -16,8 +16,7 @@ public class ClientMain {
         this.client = client;
     }
 
-    public void init(String idCliente) throws InterruptedException {
-        System.out.println("Iniciando cliente: " + idCliente);
+    public void init() throws InterruptedException {
         client.connectBlocking();
         // TODO: Implementar
     }
@@ -30,7 +29,7 @@ public class ClientMain {
          * servidor
          * ele deve se conectar e o seu ID?
          */
-        String removeMe = "ws://localhost:8081";
+        String removeMe = "ws://localhost:8080";
 
         WebSocketClient client;
 
@@ -48,7 +47,7 @@ public class ClientMain {
                 client = new Client(new URI(removeMe + "/client=" + name));
                 ClientMain main = new ClientMain(client);
 
-                main.init(name);
+                main.init();
 
                 if (client.isOpen())
                     break;

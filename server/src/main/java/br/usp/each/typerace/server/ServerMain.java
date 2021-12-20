@@ -20,7 +20,7 @@ public class ServerMain {
     }
 
     public static void main(String[] args) throws InterruptedException, IOException {
-        WebSocketServer server = new Server(8081, new HashMap<>());
+        WebSocketServer server = new Server(8080, new HashMap<>());
 
         ServerMain main = new ServerMain(server);
 
